@@ -8,8 +8,9 @@
 }
 
 .piece {
-  font-size: 48px;
   font-weight: bold;
+  height: 50px;
+  width: 50px;
 }
 
 .white {
