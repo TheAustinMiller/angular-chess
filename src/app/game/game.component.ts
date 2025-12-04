@@ -112,7 +112,7 @@ export class GameComponent {
           return false;
         }
       }
-    } else if (this.selectedPiece instanceof Queen) {
+    } else if (this.selectedPiece instanceof Queen) { // QUEEN
       const rowDiff = Math.abs(toRow - fromRow);
       const colDiff = Math.abs(toCol - fromCol);
 
@@ -144,6 +144,12 @@ export class GameComponent {
       if (rowDiff > 1 || colDiff > 1) {
         return false;
       }
+    } else if (this.selectedPiece instanceof Knight) { //KNIGHT
+      const rowDiff = Math.abs(toRow - fromRow);
+      const colDiff = Math.abs(toCol - fromCol);
+
+      return (rowDiff === 2 && colDiff === 1) ||
+        (rowDiff === 1 && colDiff === 2);
     }
     return flag;
   }
