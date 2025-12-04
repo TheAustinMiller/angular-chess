@@ -54,105 +54,113 @@ export class GameComponent {
   }
 
   isValidMove(piece: Piece, fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
-    let flag = true;
-    // Basic boundary check
-    if (toRow < 0 || toRow >= this.rows || toCol < 0 || toCol >= this.cols) {
+    // Out of bounds
+    if (toRow < 0 || toRow >= this.rows || toCol < 0 || toCol >= this.cols)
       return false;
-    }
-    if (this.selectedPiece !== null && this.selectedPiece.color === this.getPiece(toRow, toCol)?.color) {
-      return false;
-    }
 
+    // Cannot capture same color
+    const target = this.getPiece(toRow, toCol);
+    if (target && target.color === piece.color)
+      return false;
+
+    const rowDiff = Math.abs(toRow - fromRow);
+    const colDiff = Math.abs(toCol - fromCol);
+
+    // ------------------------------------
     // PAWN
-    if (this.selectedPiece instanceof Pawn) {
-      const direction = this.selectedPiece.color === 'white' ? -1 : 1;
-      if (fromCol === toCol) {
-        // Move forward
-        if (toRow === fromRow + direction && !this.getPiece(toRow, toCol)) {
-          return true;
-        } else if ((fromRow === 1 && this.selectedPiece.color === 'black' || fromRow === 6 && this.selectedPiece.color === 'white') &&
-          toRow === fromRow + 2 * direction && !this.getPiece(toRow, toCol) && !this.getPiece(fromRow + direction, toCol)) {
-          return true;
-        } else {
-          return false;
-        }
-      } else if (Math.abs(fromCol - toCol) === 1 && toRow === fromRow + direction) {
-        // Capture
-        const targetPiece = this.getPiece(toRow, toCol);
-        if (targetPiece && targetPiece.color !== this.selectedPiece.color) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    } else if (this.selectedPiece instanceof Rook) { // ROOK
-      if (fromRow !== toRow && fromCol !== toCol) {
-        return false;
-      }
-      const distance = Math.max(Math.abs(toRow - fromRow), Math.abs(toCol - fromCol));
-      for (let i = 1; i < distance; i++) {
-        const intermediateRow = fromRow + (toRow - fromRow) * i / distance;
-        const intermediateCol = fromCol + (toCol - fromCol) * i / distance;
-        if (this.getPiece(intermediateRow, intermediateCol)) {
-          return false;
-        }
-      }
-    } else if (this.selectedPiece instanceof Bishop) { // BISHOP
-      const rowDiff = Math.abs(toRow - fromRow);
-      const colDiff = Math.abs(toCol - fromCol);
-      if (rowDiff !== colDiff) {
-        return false;
-      }
-      for (let i = 1; i < rowDiff; i++) {
-        const intermediateRow = fromRow + (toRow - fromRow) * i / rowDiff;
-        const intermediateCol = fromCol + (toCol - fromCol) * i / colDiff;
-        if (this.getPiece(intermediateRow, intermediateCol)) {
-          return false;
-        }
-      }
-    } else if (this.selectedPiece instanceof Queen) { // QUEEN
-      const rowDiff = Math.abs(toRow - fromRow);
-      const colDiff = Math.abs(toCol - fromCol);
+    // ------------------------------------
+    if (piece instanceof Pawn) {
+      const direction = piece.color === "white" ? -1 : 1;
 
-      // Must move either like a rook or like a bishop
+      // forward move
+      if (fromCol === toCol) {
+        // single step
+        if (toRow === fromRow + direction && !target)
+          return true;
+
+        // double step
+        const isStart = (piece.color === "white" && fromRow === 6) ||
+          (piece.color === "black" && fromRow === 1);
+
+        if (isStart &&
+          toRow === fromRow + 2 * direction &&
+          !target &&
+          !this.getPiece(fromRow + direction, toCol)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      // diagonal capture
+      if (colDiff === 1 && toRow === fromRow + direction && target)
+        return target.color !== piece.color;
+
+      return false;
+    }
+
+    // ------------------------------------
+    // ROOK
+    // ------------------------------------
+    if (piece instanceof Rook) {
+      if (fromRow !== toRow && fromCol !== toCol) return false;
+      return this.pathClear(fromRow, fromCol, toRow, toCol);
+    }
+
+    // ------------------------------------
+    // BISHOP
+    // ------------------------------------
+    if (piece instanceof Bishop) {
+      if (rowDiff !== colDiff) return false;
+      return this.pathClear(fromRow, fromCol, toRow, toCol);
+    }
+
+    // ------------------------------------
+    // QUEEN
+    // ------------------------------------
+    if (piece instanceof Queen) {
       const isStraight = fromRow === toRow || fromCol === toCol;
       const isDiagonal = rowDiff === colDiff;
 
       if (!isStraight && !isDiagonal) return false;
 
-      // Determine step direction
-      const stepRow = Math.sign(toRow - fromRow);
-      const stepCol = Math.sign(toCol - fromCol);
-
-      let r = fromRow + stepRow;
-      let c = fromCol + stepCol;
-
-      // Walk path and check for blocking pieces
-      while (r !== toRow || c !== toCol) {
-        if (this.getPiece(r, c)) return false;
-        r += isStraight ? stepRow : stepRow;
-        c += isStraight ? stepCol : stepCol;
-      }
-
-      return true;
+      return this.pathClear(fromRow, fromCol, toRow, toCol);
     }
-    else if (this.selectedPiece instanceof King) { // KING
-      const rowDiff = Math.abs(toRow - fromRow);
-      const colDiff = Math.abs(toCol - fromCol);
-      if (rowDiff > 1 || colDiff > 1) {
-        return false;
-      }
-    } else if (this.selectedPiece instanceof Knight) { //KNIGHT
-      const rowDiff = Math.abs(toRow - fromRow);
-      const colDiff = Math.abs(toCol - fromCol);
 
+    // ------------------------------------
+    // KING
+    // ------------------------------------
+    if (piece instanceof King) {
+      return rowDiff <= 1 && colDiff <= 1;
+    }
+
+    // ------------------------------------
+    // KNIGHT
+    // ------------------------------------
+    if (piece instanceof Knight) {
       return (rowDiff === 2 && colDiff === 1) ||
         (rowDiff === 1 && colDiff === 2);
     }
-    return flag;
+
+    return false;
   }
+
+  private pathClear(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
+    const stepRow = Math.sign(toRow - fromRow);
+    const stepCol = Math.sign(toCol - fromCol);
+
+    let r = fromRow + stepRow;
+    let c = fromCol + stepCol;
+
+    while (r !== toRow || c !== toCol) {
+      if (this.getPiece(r, c)) return false;
+      r += stepRow;
+      c += stepCol;
+    }
+
+    return true;
+  }
+
 
   getPiece(row: number, col: number): Piece | null {
     return this.gameBoard[row][col];
