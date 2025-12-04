@@ -13,6 +13,7 @@ export class GameComponent {
   selectedPiece: Piece | null = null;
   selectedRow: number | null = null;
   selectedCol: number | null = null;
+  isWhiteTurn: boolean = true;
 
   constructor() {
     this.initializeBoard();
@@ -21,9 +22,8 @@ export class GameComponent {
   onCellClick(row: number, col: number): void {
     const clickedPiece = this.getPiece(row, col);
 
-    // Select piece
     if (!this.selectedPiece) {
-      if (clickedPiece) {
+      if (clickedPiece && clickedPiece.color === (this.isWhiteTurn ? "white" : "black")) {
         this.selectedPiece = clickedPiece;
         this.selectedRow = row;
         this.selectedCol = col;
@@ -31,26 +31,24 @@ export class GameComponent {
       return;
     }
 
-    // Try move
     this.tryMove(this.selectedRow!, this.selectedCol!, row, col);
 
-    // Clear selection after move attempt
     this.selectedPiece = null;
     this.selectedRow = null;
     this.selectedCol = null;
   }
 
+
   tryMove(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
     const piece = this.getPiece(fromRow, fromCol);
 
     if (!piece) return;
-
-    // TODO: rule checks go here
     if (!this.isValidMove(piece, fromRow, fromCol, toRow, toCol)) return;
 
     // Move the piece
     this.gameBoard[toRow][toCol] = piece;
     this.gameBoard[fromRow][fromCol] = null;
+    this.isWhiteTurn = !this.isWhiteTurn;
   }
 
   isValidMove(piece: Piece, fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
@@ -66,9 +64,7 @@ export class GameComponent {
     const rowDiff = Math.abs(toRow - fromRow);
     const colDiff = Math.abs(toCol - fromCol);
 
-    // ------------------------------------
     // PAWN
-    // ------------------------------------
     if (piece instanceof Pawn) {
       const direction = piece.color === "white" ? -1 : 1;
 
@@ -99,25 +95,25 @@ export class GameComponent {
       return false;
     }
 
-    // ------------------------------------
-    // ROOK
-    // ------------------------------------
-    if (piece instanceof Rook) {
-      if (fromRow !== toRow && fromCol !== toCol) return false;
-      return this.pathClear(fromRow, fromCol, toRow, toCol);
+    // KNIGHT
+    if (piece instanceof Knight) {
+      return (rowDiff === 2 && colDiff === 1) ||
+        (rowDiff === 1 && colDiff === 2);
     }
 
-    // ------------------------------------
     // BISHOP
-    // ------------------------------------
     if (piece instanceof Bishop) {
       if (rowDiff !== colDiff) return false;
       return this.pathClear(fromRow, fromCol, toRow, toCol);
     }
 
-    // ------------------------------------
+    // ROOK
+    if (piece instanceof Rook) {
+      if (fromRow !== toRow && fromCol !== toCol) return false;
+      return this.pathClear(fromRow, fromCol, toRow, toCol);
+    }
+
     // QUEEN
-    // ------------------------------------
     if (piece instanceof Queen) {
       const isStraight = fromRow === toRow || fromCol === toCol;
       const isDiagonal = rowDiff === colDiff;
@@ -127,19 +123,9 @@ export class GameComponent {
       return this.pathClear(fromRow, fromCol, toRow, toCol);
     }
 
-    // ------------------------------------
     // KING
-    // ------------------------------------
     if (piece instanceof King) {
       return rowDiff <= 1 && colDiff <= 1;
-    }
-
-    // ------------------------------------
-    // KNIGHT
-    // ------------------------------------
-    if (piece instanceof Knight) {
-      return (rowDiff === 2 && colDiff === 1) ||
-        (rowDiff === 1 && colDiff === 2);
     }
 
     return false;
@@ -159,11 +145,6 @@ export class GameComponent {
     }
 
     return true;
-  }
-
-
-  getPiece(row: number, col: number): Piece | null {
-    return this.gameBoard[row][col];
   }
 
   initializeBoard() {
@@ -190,6 +171,10 @@ export class GameComponent {
     this.gameBoard[7][5] = new Bishop("white");
     this.gameBoard[7][6] = new Knight("white");
     this.gameBoard[7][7] = new Rook("white");
+  }
+
+  getPiece(row: number, col: number): Piece | null {
+    return this.gameBoard[row][col];
   }
 }
 
