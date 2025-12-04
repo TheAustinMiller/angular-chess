@@ -30,3 +30,7 @@
   display: grid;
   grid-template-columns: repeat(var(--cols), 60px);
 }
+
+.piece.selected {
+  transform: scale(2); 
+}

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'app-game',
@@ -9,9 +10,52 @@ export class GameComponent {
   readonly rows: number = 8;
   readonly cols: number = 8;
   gameBoard: (Piece | null)[][] = [];
+  selectedPiece: Piece | null = null;
+  selectedRow: number | null = null;
+  selectedCol: number | null = null;
 
   constructor() {
     this.initializeBoard();
+  }
+
+  onCellClick(row: number, col: number): void {
+    const clickedPiece = this.getPiece(row, col);
+
+    // If no piece is selected yet
+    if (!this.selectedPiece) {
+      if (clickedPiece) {
+        this.selectedPiece = clickedPiece;
+        this.selectedRow = row;
+        this.selectedCol = col;
+      }
+      return;
+    }
+
+    // If a piece WAS selected → try to move it
+    this.tryMove(this.selectedRow!, this.selectedCol!, row, col);
+
+    // Clear selected state after attempt
+    this.selectedPiece = null;
+    this.selectedRow = null;
+    this.selectedCol = null;
+  }
+
+  tryMove(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
+    const piece = this.getPiece(fromRow, fromCol);
+
+    if (!piece) return;
+
+    // TODO: rule checks go here
+    // e.g., if (!this.isValidMove(piece, fromRow, fromCol, toRow, toCol)) return;
+
+    // Move the piece
+    this.gameBoard[toRow][toCol] = piece;
+    this.gameBoard[fromRow][fromCol] = null;
+  }
+
+
+  getPiece(row: number, col: number): Piece | null {
+    return this.gameBoard[row][col];
   }
 
   initializeBoard() {
