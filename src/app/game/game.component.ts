@@ -84,6 +84,24 @@ export class GameComponent {
       } else {
         flag = false;
       }
+    } else if (this.selectedPiece instanceof Rook) { // ROOK
+      if (fromRow !== toRow && fromCol !== toCol) {
+        flag = false;
+      }
+      // CAPTURE
+        const targetPiece = this.getPiece(toRow, toCol);
+        if (targetPiece && targetPiece.color === this.selectedPiece.color) {
+          flag = false;
+        }
+      const distance = Math.max(Math.abs(toRow - fromRow), Math.abs(toCol - fromCol));
+      for (let i = 1; i < distance; i++) {
+        const intermediateRow = fromRow + (toRow - fromRow) * i / distance;
+        const intermediateCol = fromCol + (toCol - fromCol) * i / distance;
+        if (this.getPiece(intermediateRow, intermediateCol)) {
+          flag = false;
+          break;
+        }
+      }
     }
     return flag;
   }
