@@ -46,13 +46,47 @@ export class GameComponent {
     if (!piece) return;
 
     // TODO: rule checks go here
-    // e.g., if (!this.isValidMove(piece, fromRow, fromCol, toRow, toCol)) return;
+    if (!this.isValidMove(piece, fromRow, fromCol, toRow, toCol)) return;
 
     // Move the piece
     this.gameBoard[toRow][toCol] = piece;
     this.gameBoard[fromRow][fromCol] = null;
   }
 
+  isValidMove(piece: Piece, fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
+    let flag = true;
+    // Basic boundary check
+    if (toRow < 0 || toRow >= this.rows || toCol < 0 || toCol >= this.cols) {
+      return false;
+    }
+    
+    // PAWN
+    if (this.selectedPiece instanceof Pawn) {
+      const direction = this.selectedPiece.color === 'white' ? -1 : 1;
+      if (fromCol === toCol) {
+        // Move forward
+        if (toRow === fromRow + direction && !this.getPiece(toRow, toCol)) {
+          return true;
+        } else if ((fromRow === 1 && this.selectedPiece.color === 'black' || fromRow === 6 && this.selectedPiece.color === 'white') &&
+          toRow === fromRow + 2 * direction && !this.getPiece(toRow, toCol) && !this.getPiece(fromRow + direction, toCol)) {
+          return true;
+        } else {
+          flag = false;
+        }
+      } else if (Math.abs(fromCol - toCol) === 1 && toRow === fromRow + direction) {
+        // Capture
+        const targetPiece = this.getPiece(toRow, toCol);
+        if (targetPiece && targetPiece.color !== this.selectedPiece.color) {
+          flag = true;
+        } else {
+          flag = false;
+        }
+      } else {
+        flag = false;
+      }
+    }
+    return flag;
+  }
 
   getPiece(row: number, col: number): Piece | null {
     return this.gameBoard[row][col];
