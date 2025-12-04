@@ -59,6 +59,9 @@ export class GameComponent {
     if (toRow < 0 || toRow >= this.rows || toCol < 0 || toCol >= this.cols) {
       return false;
     }
+    if (this.selectedPiece !== null && this.selectedPiece.color === this.getPiece(toRow, toCol)?.color) {
+      return false;
+    }
 
     // PAWN
     if (this.selectedPiece instanceof Pawn) {
@@ -71,36 +74,75 @@ export class GameComponent {
           toRow === fromRow + 2 * direction && !this.getPiece(toRow, toCol) && !this.getPiece(fromRow + direction, toCol)) {
           return true;
         } else {
-          flag = false;
+          return false;
         }
       } else if (Math.abs(fromCol - toCol) === 1 && toRow === fromRow + direction) {
         // Capture
         const targetPiece = this.getPiece(toRow, toCol);
         if (targetPiece && targetPiece.color !== this.selectedPiece.color) {
-          flag = true;
+          return true;
         } else {
-          flag = false;
+          return false;
         }
       } else {
-        flag = false;
+        return false;
       }
     } else if (this.selectedPiece instanceof Rook) { // ROOK
       if (fromRow !== toRow && fromCol !== toCol) {
-        flag = false;
-      }
-      // CAPTURE
-      const targetPiece = this.getPiece(toRow, toCol);
-      if (targetPiece && targetPiece.color === this.selectedPiece.color) {
-        flag = false;
+        return false;
       }
       const distance = Math.max(Math.abs(toRow - fromRow), Math.abs(toCol - fromCol));
       for (let i = 1; i < distance; i++) {
         const intermediateRow = fromRow + (toRow - fromRow) * i / distance;
         const intermediateCol = fromCol + (toCol - fromCol) * i / distance;
         if (this.getPiece(intermediateRow, intermediateCol)) {
-          flag = false;
-          break;
+          return false;
         }
+      }
+    } else if (this.selectedPiece instanceof Bishop) { // BISHOP
+      const rowDiff = Math.abs(toRow - fromRow);
+      const colDiff = Math.abs(toCol - fromCol);
+      if (rowDiff !== colDiff) {
+        return false;
+      }
+      for (let i = 1; i < rowDiff; i++) {
+        const intermediateRow = fromRow + (toRow - fromRow) * i / rowDiff;
+        const intermediateCol = fromCol + (toCol - fromCol) * i / colDiff;
+        if (this.getPiece(intermediateRow, intermediateCol)) {
+          return false;
+        }
+      }
+    } else if (this.selectedPiece instanceof Queen) {
+      const rowDiff = Math.abs(toRow - fromRow);
+      const colDiff = Math.abs(toCol - fromCol);
+
+      // Must move either like a rook or like a bishop
+      const isStraight = fromRow === toRow || fromCol === toCol;
+      const isDiagonal = rowDiff === colDiff;
+
+      if (!isStraight && !isDiagonal) return false;
+
+      // Determine step direction
+      const stepRow = Math.sign(toRow - fromRow);
+      const stepCol = Math.sign(toCol - fromCol);
+
+      let r = fromRow + stepRow;
+      let c = fromCol + stepCol;
+
+      // Walk path and check for blocking pieces
+      while (r !== toRow || c !== toCol) {
+        if (this.getPiece(r, c)) return false;
+        r += isStraight ? stepRow : stepRow;
+        c += isStraight ? stepCol : stepCol;
+      }
+
+      return true;
+    }
+    else if (this.selectedPiece instanceof King) { // KING
+      const rowDiff = Math.abs(toRow - fromRow);
+      const colDiff = Math.abs(toCol - fromCol);
+      if (rowDiff > 1 || colDiff > 1) {
+        return false;
       }
     }
     return flag;
