@@ -1,7 +1,7 @@
 <div class="game-board" [style.--rows]="rows" [style.--cols]="cols">
     <div class="row" *ngFor="let row of gameBoard; let rowIndex = index">
         <div class="cell" *ngFor="let cell of row; let colIndex = index" (click)="onCellClick(rowIndex, colIndex)" [style.background-color]="(rowIndex + colIndex) % 2 === 0 ? '#B0B0B0' : 'lightgray'">
-            <img class="piece" *ngIf="cell" [ngClass]="cell.color" [src]="cell.symbol" alt="Chess piece">
+            <img class="piece" *ngIf="cell" [ngClass]="cell.color" [ngClass]="[cell.color, cell === selectedPiece ? 'selected' : '']" [src]="cell.symbol" alt="Chess piece">
         </div>
     </div>
 </div>

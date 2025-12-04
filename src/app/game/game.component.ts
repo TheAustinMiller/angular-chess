@@ -21,7 +21,7 @@ export class GameComponent {
   onCellClick(row: number, col: number): void {
     const clickedPiece = this.getPiece(row, col);
 
-    // If no piece is selected yet
+    // Select piece
     if (!this.selectedPiece) {
       if (clickedPiece) {
         this.selectedPiece = clickedPiece;
@@ -31,10 +31,10 @@ export class GameComponent {
       return;
     }
 
-    // If a piece WAS selected → try to move it
+    // Try move
     this.tryMove(this.selectedRow!, this.selectedCol!, row, col);
 
-    // Clear selected state after attempt
+    // Clear selection after move attempt
     this.selectedPiece = null;
     this.selectedRow = null;
     this.selectedCol = null;
@@ -59,7 +59,7 @@ export class GameComponent {
     if (toRow < 0 || toRow >= this.rows || toCol < 0 || toCol >= this.cols) {
       return false;
     }
-    
+
     // PAWN
     if (this.selectedPiece instanceof Pawn) {
       const direction = this.selectedPiece.color === 'white' ? -1 : 1;
@@ -89,10 +89,10 @@ export class GameComponent {
         flag = false;
       }
       // CAPTURE
-        const targetPiece = this.getPiece(toRow, toCol);
-        if (targetPiece && targetPiece.color === this.selectedPiece.color) {
-          flag = false;
-        }
+      const targetPiece = this.getPiece(toRow, toCol);
+      if (targetPiece && targetPiece.color === this.selectedPiece.color) {
+        flag = false;
+      }
       const distance = Math.max(Math.abs(toRow - fromRow), Math.abs(toCol - fromCol));
       for (let i = 1; i < distance; i++) {
         const intermediateRow = fromRow + (toRow - fromRow) * i / distance;

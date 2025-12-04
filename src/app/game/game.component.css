@@ -13,6 +13,11 @@
   width: 50px;
 }
 
+.piece.selected {
+  width: 70px;
+  height: 70px;
+}
+
 .white {
   color: white;
 }
