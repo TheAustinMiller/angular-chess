@@ -1,5 +1,10 @@
 import { Component } from '@angular/core';
 
+
+/**
+ * Dec. 2025 - Chess
+ * @author Austin Miller
+ */
 @Component({
   selector: 'app-game',
   templateUrl: './game.component.html',
@@ -18,6 +23,12 @@ export class GameComponent {
     this.initializeBoard();
   }
 
+  /**
+   * Handles cell click by selecting a piece or attempting a move.
+   * @param row The row of the clicked cell
+   * @param col The col of the clicked cell
+   * @returns void
+   */
   onCellClick(row: number, col: number): void {
     const clickedPiece = this.getPiece(row, col);
 
@@ -37,6 +48,14 @@ export class GameComponent {
     this.selectedCol = null;
   }
 
+  /**
+   * Attempts to move a piece from one cell to another.
+   * @param fromRow The row of the piece to move
+   * @param fromCol The col of the piece to move
+   * @param toRow The row of target cell
+   * @param toCol The col of the target cell
+   * @returns void
+   */
   tryMove(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
     const piece = this.getPiece(fromRow, fromCol);
     if (!piece) return;
